@@ -1,0 +1,19 @@
+[project]
+name = "clapeyron-jax"
+version = "0.0.1"
+description = "JAX-compatible bindings for Clapeyron.jl."
+readme = "README.md"
+authors = [
+    { name = "Niall Oswald", email = "niall.oswald@hotmail.co.uk" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "equinox>=0.13.4",
+    "jax>=0.9.1",
+    "jaxtyping>=0.3.9",
+    "pyclapeyron>=0.1.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.7,<0.11.0"]
+build-backend = "uv_build"
