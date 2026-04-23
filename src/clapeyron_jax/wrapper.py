@@ -7,6 +7,8 @@ import jax
 import jax.numpy as jnp
 from jaxtyping import Array
 
+# from clapeyron_jax.config import JAX_ENABLE_X64
+
 
 def _unwrap_scalar(obj):
     """Extract Python scalar from 0-d array, keep higher-d arrays as-is."""
@@ -61,6 +63,8 @@ def create_jax_wrapper(
     signature,
     dtype=jnp.float32,
 ):
+    # TODO: Get default dtype from JAX config
+
     def wrapped(model, *args, **kwargs):
         # Find output shape using the symbolic signature
         result_shape_dtypes = parse_symbolic_shape(signature, args, dtype)
