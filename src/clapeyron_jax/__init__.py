@@ -12,3 +12,4 @@ pressure = create_jax_wrapper(cl.pressure, "(),(),(n)->()")
 
 # Multiphase properties
 bubble_pressure = create_jax_wrapper(cl.bubble_pressure, "(),(),(n)->(),(),(),(n)")
+saturation_pressure = create_jax_wrapper(cl.saturation_pressure, "(),()->(),(),()")
