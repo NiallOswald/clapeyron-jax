@@ -13,7 +13,7 @@ def unwrap_scalar(obj):
     return obj
 
 
-def parse_symbolic_shape(signature, inputs, dtype) -> jax.ShapeDtypeStructs:
+def parse_symbolic_shape(signature, inputs, dtype):
     """
     Parses a signature like '(a, b), (n) -> (n, a)'
     and returns a tuple of ShapeDtypeStruct.
