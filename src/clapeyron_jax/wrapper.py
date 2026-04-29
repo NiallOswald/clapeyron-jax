@@ -12,7 +12,7 @@ jl.seval("using Clapeyron, ForwardDiff")
 jl.seval("""
 function jvp_wrapper(func, model, primals, tangents, kwargs)
     function callback(ε)
-        perturbed_args = [p .+ ε .* t for (p, t) in zip(primals, tangents)]
+        perturbed_args = [t !== nothing ? p .+ ε .* t : p for (p, t) in zip(primals, tangents)]
         return func(model, perturbed_args...; kwargs...)
     end
 
