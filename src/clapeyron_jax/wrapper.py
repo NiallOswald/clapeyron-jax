@@ -10,13 +10,30 @@ from clapeyron_jax.utils import parse_symbolic_shape, unwrap_scalar
 jl.seval("using Clapeyron, ForwardDiff")
 
 jl.seval("""
+struct JAXTag end
+
 function jvp_wrapper(func, model, primals, tangents, kwargs)
-    function callback(ε)
-        perturbed_args = [t !== nothing ? p .+ ε .* t : p for (p, t) in zip(primals, tangents)]
-        return func(model, perturbed_args...; kwargs...)
+    # Create a tag for the Dual number
+    base_type = eltype(primals[1])
+    T = typeof(ForwardDiff.Tag(JAXTag(), base_type))
+
+    dual_args = [
+        t !== nothing ? ForwardDiff.Dual{T}.(p, t) : p
+        for (p, t) in zip(primals, tangents)
+    ]
+
+    dual_result = func(model, dual_args...; kwargs...)
+
+    out = []
+    for item in dual_result
+        if item isa AbstractArray
+            push!(out, ForwardDiff.partials.(item, 1))
+        else
+            push!(out, ForwardDiff.partials(item, 1))
+        end
     end
 
-    return ForwardDiff.derivative(callback, 0.0)
+    return length(out) == 1 ? out[1] : Tuple(out)
 end
 """)
 
