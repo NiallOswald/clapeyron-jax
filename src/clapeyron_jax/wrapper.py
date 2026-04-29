@@ -16,10 +16,7 @@ function jvp_wrapper(func, model, primals, tangents, kwargs)
         return func(model, perturbed_args...; kwargs...)
     end
 
-    primal_out = callback(0.0)
-    tangent_out = ForwardDiff.derivative(callback, 0.0)
-
-    return primal_out, tangent_out
+    return ForwardDiff.derivative(callback, 0.0)
 end
 """)
 
@@ -68,28 +65,28 @@ def create_jax_wrapper(
         model, *args = primals
         _, *t_args = tangents
 
+        # Compute primal output
+        primal_out = wrapped(*primals, **kwargs)
+
         # Find output shape using the symbolic signature
         result_shape_dtypes = parse_symbolic_shape(signature, args, dtype)
-        result_shape_dtypes = (result_shape_dtypes, result_shape_dtypes)
 
         def callback(args, t_args, kwargs):
             args = [unwrap_scalar(arr) for arr in args]
             t_args = [unwrap_scalar(arr) for arr in t_args]
             kwargs = {key: unwrap_scalar(arr) for key, arr in kwargs.items()}
 
-            primal_out, tangent_out = jvp_wrapper(func, model, args, t_args, kwargs)
-
-            print(primal_out, tangent_out)
+            tangent_out = jvp_wrapper(func, model, args, t_args, kwargs)
 
             return jax.tree_util.tree_map(
                 lambda val, struct: jnp.asarray(val, dtype=struct.dtype).reshape(
                     struct.shape
                 ),
-                (primal_out, tangent_out),
+                tangent_out,
                 result_shape_dtypes,
             )
 
-        return eqx.filter_pure_callback(
+        tangent_out = eqx.filter_pure_callback(
             callback,
             args,
             t_args,
@@ -97,6 +94,8 @@ def create_jax_wrapper(
             result_shape_dtypes=result_shape_dtypes,
             vmap_method="sequential",
         )
+
+        return primal_out, tangent_out
 
     wrapped.__name__ = func.__name__
     wrapped.__doc__ = (
