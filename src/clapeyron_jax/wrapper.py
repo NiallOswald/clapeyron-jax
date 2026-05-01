@@ -17,12 +17,14 @@ function jvp_wrapper(func, model, primals, tangents, kwargs)
     base_type = eltype(primals[1])
     T = typeof(ForwardDiff.Tag(JAXTag(), base_type))
 
-    dual_args = [
+    args = [
         t !== nothing ? ForwardDiff.Dual{T}.(p, t) : p
         for (p, t) in zip(primals, tangents)
     ]
 
-    dual_result = func(model, dual_args...; kwargs...)
+    kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
+
+    dual_result = func(model, args...; kwargs...)
 
     out = []
     for item in dual_result
