@@ -57,7 +57,7 @@ def create_jax_wrapper(
         result_shape_dtypes = parse_symbolic_shape(signature, args, dtype)
 
         def callback(args, kwargs):
-            args = [unwrap_scalar(arr) for arr in args]
+            args = tuple(unwrap_scalar(arr) for arr in args)
             kwargs = {key: unwrap_scalar(arr) for key, arr in kwargs.items()}
 
             result = func(model, *args, **kwargs)
@@ -91,8 +91,8 @@ def create_jax_wrapper(
         result_shape_dtypes = parse_symbolic_shape(signature, args, dtype)
 
         def callback(args, t_args, kwargs):
-            args = [unwrap_scalar(arr) for arr in args]
-            t_args = [unwrap_scalar(arr) for arr in t_args]
+            args = tuple(unwrap_scalar(arr) for arr in args)
+            t_args = tuple(unwrap_scalar(arr) for arr in t_args)
             kwargs = {key: unwrap_scalar(arr) for key, arr in kwargs.items()}
 
             tangent_out = jvp_wrapper(func, model, args, t_args, kwargs)
