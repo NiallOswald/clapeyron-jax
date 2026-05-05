@@ -1,11 +1,15 @@
 """JAX-compatible wrappers for Clapeyron.jl."""
 
+from typing import Optional
+
 import equinox as eqx
 import jax
 import jax.numpy as jnp
 from juliacall import Main as jl
 
 from clapeyron_jax.utils import parse_symbolic_shape, unwrap_scalar
+
+from .config import JAX_ENABLE_X64
 
 jl.seval("using Clapeyron, ForwardDiff")
 
@@ -45,9 +49,13 @@ jvp_wrapper = jl.jvp_wrapper
 def create_jax_wrapper(
     func_name: str,
     signature: str,
-    dtype=jnp.float32,
+    dtype: Optional[type] = None,
 ):
-    # TODO: Get default dtype from JAX config
+    if dtype is None:
+        if JAX_ENABLE_X64:
+            dtype = jnp.float64
+        else:
+            dtype = jnp.float32
 
     func = getattr(jl.Clapeyron, func_name)
 
