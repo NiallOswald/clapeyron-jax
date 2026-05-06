@@ -7,7 +7,6 @@ from juliacall import Main as jl
 
 from clapeyron_jax.utils import parse_symbolic_shape, unwrap_scalar
 
-
 jl.seval("using Clapeyron, ForwardDiff")
 
 jl.seval("""
