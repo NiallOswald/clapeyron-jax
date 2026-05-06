@@ -20,14 +20,14 @@ class Phase(StrEnum):
 
 
 # Utilities
-def mass_to_mole(model, ws: Float[Array, "n"]) -> Float[Array, "n"]:
+def mass_to_moles(model, ws: Float[Array, "n"]) -> Float[Array, "n"]:
     """Convert a mass fraction into a mole fraction."""
     mw = 1e-3 * jnp.array(model.params.Mw.values)
     num = ws / mw
     return num / jnp.sum(num)
 
 
-def mole_to_mass(model, zs: Float[Array, "n"]) -> Float[Array, "n"]:
+def moles_to_mass(model, zs: Float[Array, "n"]) -> Float[Array, "n"]:
     """Convert a mole fraction into a mass fraction."""
     mw = 1e-3 * jnp.array(model.params.Mw.values)
     num = zs * mw
