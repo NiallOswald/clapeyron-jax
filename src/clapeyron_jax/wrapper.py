@@ -42,17 +42,13 @@ end
 jvp_wrapper = jl.jvp_wrapper
 
 
-def create_jax_wrapper(
-    func_name: str,
-    signature: str,
-):
+def create_jax_wrapper(func_name: str, signature: str):
     func = getattr(jl.Clapeyron, func_name)
-    dtype = float  # TODO: Enforce this inside the parse_symbolic_shape
 
     @eqx.filter_custom_jvp
     def wrapped(model, *args, **kwargs):
         # Find output shape using the symbolic signature
-        result_shape_dtypes = parse_symbolic_shape(signature, args, dtype)
+        result_shape_dtypes = parse_symbolic_shape(signature, args, float)
 
         def callback(args, kwargs):
             args = tuple(unwrap_scalar(arr) for arr in args)
@@ -86,7 +82,7 @@ def create_jax_wrapper(
         primal_out = wrapped(*primals, **kwargs)
 
         # Find output shape using the symbolic signature
-        result_shape_dtypes = parse_symbolic_shape(signature, args, dtype)
+        result_shape_dtypes = parse_symbolic_shape(signature, args, float)
 
         def callback(args, t_args, kwargs):
             args = tuple(unwrap_scalar(arr) for arr in args)
