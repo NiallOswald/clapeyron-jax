@@ -1,22 +1,10 @@
 """JAX-compatible wrappers for Clapeyron.jl."""
 
-from enum import StrEnum, auto
-
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
+from .phases import Liquid, Phase, Solid, Stable, Unknown, Vapor
 from .wrapper import create_jax_wrapper
-
-
-# Enums
-class Phase(StrEnum):
-    """Phases accepted by Clapeyron.jl."""
-
-    Unknown = auto()
-    Liquid = auto()
-    Vapor = auto()
-    Solid = auto()
-    Stable = auto()
 
 
 # Utilities
