@@ -24,6 +24,7 @@ def moles_to_mass(model, zs: Float[Array, "n"]) -> Float[Array, "n"]:
 
 # Pressure-based bulk properties
 mass_density = create_jax_wrapper("mass_density", "(),(),(n)->()")
+mass_internal_energy = create_jax_wrapper("mass_internal_energy", "(),(),(n)->()")
 
 # Volume-based bulk properties
 pressure = create_jax_wrapper("pressure", "(),(),(n)->()")
