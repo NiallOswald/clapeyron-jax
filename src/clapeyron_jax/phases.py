@@ -1,29 +1,21 @@
 """Phases accepted by Clapeyron.jl."""
 
 
-class BasePhase(str):
+class Phase(str):
     def __new__(cls):
         return super().__new__(cls, cls.__name__)
 
 
-class Unknown(BasePhase):
-    pass
+class Unknown(Phase): ...
 
 
-class Liquid(BasePhase):
-    pass
+class Liquid(Phase): ...
 
 
-class Vapor(BasePhase):
-    pass
+class Vapor(Phase): ...
 
 
-class Solid(BasePhase):
-    pass
+class Solid(Phase): ...
 
 
-class Stable(BasePhase):
-    pass
-
-
-Phase = Unknown | Liquid | Vapor | Solid | Stable
+class Stable(Phase): ...
