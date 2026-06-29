@@ -6,49 +6,54 @@ import jax
 from jaxtyping import Array
 
 
-def unwrap_scalar(obj):
-    """Extract Python scalar from 0-d array, keep higher-d arrays as-is."""
-    if isinstance(obj, Array) and obj.ndim == 0:
-        return obj.item()
-    return obj
-
-
-def parse_symbolic_shape(signature, inputs, dtype):
+def parse_symbolic_shape(signature: str, args: tuple):
     """
     Parses a signature like '(a, b), (n) -> (n, a)'
     and returns a tuple of ShapeDtypeStruct.
     """
-    in_part, out_part = signature.split("->")
-
     # Extract dimensions
+    in_part, out_part = signature.split("->")
     in_specs = re.findall(r"\((.*?)\)", in_part)
     out_specs = re.findall(r"\((.*?)\)", out_part)
 
     # Map symbols to integer values from input tracers
+    batch_dims = ()
     symbol_map = {}
-    for spec, arr in zip(in_specs, inputs):
-        if not spec:  # input is scalar
+    for spec, arg in zip(in_specs, args):
+        if not spec:  # spec is scalar
+            if isinstance(arg, Array):
+                batch_dims = arg.shape
             continue
 
-        dims = [d.strip() for d in spec.split(",")]
-        for i, dim_symbol in enumerate(dims):
-            if dim_symbol.isdigit():
-                continue  # skip constant dimensions
-            symbol_map[dim_symbol] = arr.shape[i]
+        keys = [d.strip() for d in spec.split(",")]
+
+        batch_dims = arg.shape[: -len(keys)]
+        val_dims = arg.shape[-len(keys) :]
+
+        for key, val in zip(keys, val_dims):
+            if key.isdigit() or key in symbol_map:
+                continue
+            symbol_map[key] = val
 
     # Build output ShapeDtypeStructs using the symbol_map
-    results = []
+    result_shape_dtypes = []
     for spec in out_specs:
-        spec = spec.strip()
-        if not spec:  # output is scalar
+        if not spec:
             out_dims = ()
+
         else:
-            out_dims = []
-            for d in [d.strip() for d in spec.split(",")]:
-                # Use mapped symbol or literal integer
-                out_dims.append(symbol_map[d] if d in symbol_map else int(d))
-            out_dims = tuple(out_dims)
+            keys = [d.strip() for d in spec.split(",")]
+            out_dims = tuple(
+                map(
+                    # Use mapped symbol or literal integer
+                    lambda key: symbol_map[key] if key in symbol_map else int(key),
+                    keys,
+                )
+            )
 
-        results.append(jax.ShapeDtypeStruct(out_dims, dtype))
+        result_shape_dtypes.append(jax.ShapeDtypeStruct(batch_dims + out_dims, float))
 
-    return tuple(results) if len(results) > 1 else results[0]
+    if len(result_shape_dtypes) > 1:
+        return tuple(result_shape_dtypes)
+    else:
+        return result_shape_dtypes[0]
