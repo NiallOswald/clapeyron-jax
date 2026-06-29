@@ -1,6 +1,6 @@
 [project]
 name = "clapeyron-jax"
-version = "0.0.1"
+dynamic = ["version"]
 description = "JAX-compatible bindings for Clapeyron.jl."
 readme = "README.md"
 authors = [
@@ -15,10 +15,16 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.10.7,<0.11.0"]
-build-backend = "uv_build"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
     "juliapkg>=0.1.23",
 ]
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+bump = true

@@ -1,10 +1,17 @@
 """JAX-compatible wrappers for Clapeyron.jl."""
 
+import importlib.metadata
+
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
 from .phases import Liquid, Phase, Solid, Stable, Unknown, Vapor
 from .wrapper import create_jax_wrapper
+
+try:
+    __version__ = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFoundError:
+    __version__ = "0.0.0-dev"  # Fallback for editable installations
 
 
 # Utilities
