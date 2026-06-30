@@ -30,7 +30,8 @@ jobs:
       - name: Sync packages
         run: uv sync --group docs
 
-      - run: zensical build --clean
+      - name: Build site
+        run: uv zensical build --clean
 
       - uses: actions/upload-pages-artifact@v5
         with:
