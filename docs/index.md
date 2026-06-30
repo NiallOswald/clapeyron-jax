@@ -1,5 +1,9 @@
 # Getting started
 
+!!! warning
+
+    Clapeyron-JAX is currently unstable. Please pin your version until the v0.1.0 release.
+
 ## Installation
 
 ```bash
