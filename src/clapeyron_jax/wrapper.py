@@ -5,12 +5,32 @@ import jax
 import jax.numpy as jnp
 from juliacall import Main as jl
 
-from clapeyron_jax.utils import parse_symbolic_shape, unwrap_scalar
-
-jl.seval("using Clapeyron, ForwardDiff")
+from clapeyron_jax.utils import parse_symbolic_shape
 
 jl.seval("""
+using Clapeyron, ForwardDiff
+
 struct JAXTag end
+
+unwrap_dual(x::ForwardDiff.Dual) =
+    (ForwardDiff.value(x), ForwardDiff.partials(x)[1])
+
+unwrap_dual(x::AbstractArray{<:ForwardDiff.Dual}) =
+    (ForwardDiff.value.(x), getindex.(ForwardDiff.partials.(x), 1))
+
+unwrap_dual(x::Tuple) =
+    map(unwrap_dual, x) |> y -> (first.(y), last.(y))
+
+unwrap_dual(x::NamedTuple) = begin
+    y = map(unwrap_dual, values(x))
+    (
+        NamedTuple{keys(x)}(Tuple(first.(y))),
+        NamedTuple{keys(x)}(Tuple(last.(y)))
+    )
+end
+
+unwrap_dual(x) =
+    throw(ArgumentError("Unsupported type: $(typeof(x))"))
 
 function jvp_wrapper(func, model, primals, tangents, kwargs)
     # Create a tag for the Dual number
@@ -18,24 +38,14 @@ function jvp_wrapper(func, model, primals, tangents, kwargs)
     T = typeof(ForwardDiff.Tag(JAXTag(), base_type))
 
     args = [
-        t !== nothing ? ForwardDiff.Dual{T}.(p, t) : p
+        t === nothing ? p : ForwardDiff.Dual{T}.(p, t)
         for (p, t) in zip(primals, tangents)
     ]
-
     kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
 
-    dual_result = func(model, args...; kwargs...)
+    dual_result = func.(model, args...; kwargs...)
 
-    out = []
-    for item in dual_result
-        if item isa AbstractArray
-            push!(out, ForwardDiff.partials.(item, 1))
-        else
-            push!(out, ForwardDiff.partials(item, 1))
-        end
-    end
-
-    return length(out) == 1 ? out[1] : Tuple(out)
+    return unwrap_dual(dual_result)
 end
 """)
 
@@ -48,29 +58,18 @@ def create_jax_wrapper(func_name: str, signature: str):
     @eqx.filter_custom_jvp
     def wrapped(model, *args, **kwargs):
         # Find output shape using the symbolic signature
-        result_shape_dtypes = parse_symbolic_shape(signature, args, float)
+        result_shape_dtypes = parse_symbolic_shape(signature, args)
 
-        def callback(args, kwargs):
-            args = tuple(unwrap_scalar(arr) for arr in args)
-            kwargs = {key: unwrap_scalar(arr) for key, arr in kwargs.items()}
-
-            result = func(model, *args, **kwargs)
-
-            # Cast output result to JAX arrays
-            return jax.tree_util.tree_map(
-                lambda val, struct: jnp.asarray(val, dtype=struct.dtype).reshape(
-                    struct.shape
-                ),
-                result,
-                result_shape_dtypes,
-            )
+        def callback(_args, _kwargs):
+            _result = jl.broadcast(func, model, *_args, **_kwargs)
+            return jax.tree_util.tree_map(lambda val: jnp.asarray(val), _result)
 
         return eqx.filter_pure_callback(
             callback,
             args,
             kwargs,
             result_shape_dtypes=result_shape_dtypes,
-            vmap_method="sequential",
+            vmap_method="expand_dims",
         )
 
     @wrapped.def_jvp
@@ -82,22 +81,11 @@ def create_jax_wrapper(func_name: str, signature: str):
         primal_out = wrapped(*primals, **kwargs)
 
         # Find output shape using the symbolic signature
-        result_shape_dtypes = parse_symbolic_shape(signature, args, float)
+        result_shape_dtypes = parse_symbolic_shape(signature, t_args)
 
-        def callback(args, t_args, kwargs):
-            args = tuple(unwrap_scalar(arr) for arr in args)
-            t_args = tuple(unwrap_scalar(arr) for arr in t_args)
-            kwargs = {key: unwrap_scalar(arr) for key, arr in kwargs.items()}
-
-            tangent_out = jvp_wrapper(func, model, args, t_args, kwargs)
-
-            return jax.tree_util.tree_map(
-                lambda val, struct: jnp.asarray(val, dtype=struct.dtype).reshape(
-                    struct.shape
-                ),
-                tangent_out,
-                result_shape_dtypes,
-            )
+        def callback(_args, _t_args, _kwargs):
+            _, _tangent_out = jvp_wrapper(func, model, _args, _t_args, _kwargs)
+            return jax.tree_util.tree_map(lambda val: jnp.asarray(val), _tangent_out)
 
         tangent_out = eqx.filter_pure_callback(
             callback,
@@ -105,7 +93,7 @@ def create_jax_wrapper(func_name: str, signature: str):
             t_args,
             kwargs,
             result_shape_dtypes=result_shape_dtypes,
-            vmap_method="sequential",
+            vmap_method="expand_dims",
         )
 
         return primal_out, tangent_out
