@@ -53,6 +53,7 @@ jvp_wrapper = jl.jvp_wrapper
 
 
 def create_jax_wrapper(func_name: str, signature: str):
+    """Wraps a Clapeyron.jl function."""
     func = getattr(jl.Clapeyron, func_name)
 
     @eqx.filter_custom_jvp
