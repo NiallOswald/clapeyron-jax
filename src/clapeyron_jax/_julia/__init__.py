@@ -1,12 +1,8 @@
-"""Julia backend."""
-
-from functools import lru_cache
+"""The Julia backend."""
 
 
-@lru_cache(maxsize=1)
-def get_backend():
-    """Lazy-load the Julia interpreter."""
-
+def _load_interpreter():
+    """Load and configure Julia interpreter."""
     from juliacall import Main as jl
 
     jl.seval("""
@@ -34,7 +30,7 @@ def get_backend():
     unwrap_dual(x) =
         throw(ArgumentError("Unsupported type: $(typeof(x))"))
 
-    function jvp_wrapper(func, model, primals, tangents, kwargs)
+    function jvp_wrapper(func, primals, tangents, kwargs)
         # Create a tag for the Dual number
         base_type = eltype(primals[1])
         T = typeof(ForwardDiff.Tag(JAXTag(), base_type))
@@ -45,10 +41,16 @@ def get_backend():
         ]
         kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
 
-        dual_result = func.(model, args...; kwargs...)
+        dual_result = func.(args...; kwargs...)
 
         return unwrap_dual(dual_result)
     end
     """)
 
     return jl
+
+    def __getattr__(self, name: str):
+        return getattr(self._interpreter, name)
+
+
+julia = _load_interpreter()
