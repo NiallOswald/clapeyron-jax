@@ -21,7 +21,7 @@ Copyright &copy; 2026 Niall Oswald
 nav = [
     "index.md",
     {"Examples" = []},
-    {"Reference" = []},
+    {"Reference" = ["reference/wrapper.md"]},
 ]
 
 # Read more: https://zensical.org/docs/customization/#additional-css
@@ -258,7 +258,7 @@ inventories = ["https://docs.python.org/3/objects.inv"]
 paths = ["src"]
 
 [project.plugins.mkdocstrings.handlers.python.options]
-force_inspection = true
+allow_inspection = false
 heading_level = 4
 inherited_members = true
 members_order = "source"
