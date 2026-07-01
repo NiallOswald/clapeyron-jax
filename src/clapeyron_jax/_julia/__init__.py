@@ -30,7 +30,7 @@ def _load_interpreter():
     unwrap_dual(x) =
         throw(ArgumentError("Unsupported type: $(typeof(x))"))
 
-    function jvp_wrapper(func, model, primals, tangents, kwargs)
+    function jvp_wrapper(func, primals, tangents, kwargs)
         # Create a tag for the Dual number
         base_type = eltype(primals[1])
         T = typeof(ForwardDiff.Tag(JAXTag(), base_type))
@@ -41,7 +41,7 @@ def _load_interpreter():
         ]
         kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
 
-        dual_result = func.(model, args...; kwargs...)
+        dual_result = func.(args...; kwargs...)
 
         return unwrap_dual(dual_result)
     end
