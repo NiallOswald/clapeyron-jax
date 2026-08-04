@@ -1,4 +1,4 @@
-"""Common utilities for Clapeyron.jl wrapper."""
+"""Utilities for Clapeyron.jl wrapper."""
 
 import re
 
