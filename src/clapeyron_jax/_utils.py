@@ -6,6 +6,16 @@ import jax
 from jaxtyping import Array
 
 
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
 def parse_symbolic_shape(signature: str, args: tuple):
     """
     Parses a signature like '(a, b), (n) -> (n, a)'
