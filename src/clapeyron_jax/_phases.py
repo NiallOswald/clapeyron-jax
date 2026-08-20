@@ -1,11 +1,34 @@
 """Phases accepted by Clapeyron.jl."""
 
-from typing import Literal, Union
+from ._utils import SingletonMeta
 
-type Unknown = Literal["unknown"]
-type Liquid = Literal["liquid"]
-type Vapor = Literal["vapor"]
-type Solid = Literal["solid"]
-type Stable = Literal["stable"]
 
-type Phase = Union[Unknown, Liquid, Vapor, Solid, Stable]
+class Phase(str, metaclass=SingletonMeta):
+    """A phase accepted by Clapeyron.jl."""
+
+    def __new__(cls):
+        return super().__new__(cls, cls.__name__.lower())
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
+    def __reduce__(self):
+        return (self.__class__, ())
+
+
+class Unknown(Phase): ...
+
+
+class Liquid(Phase): ...
+
+
+class Vapor(Phase): ...
+
+
+class Solid(Phase): ...
+
+
+class Stable(Phase): ...
