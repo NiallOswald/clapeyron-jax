@@ -5,7 +5,14 @@ import importlib.metadata
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
-from .phases import Liquid, Phase, Solid, Stable, Unknown, Vapor
+from ._phases import (
+    Liquid as Liquid,
+    Phase as Phase,
+    Solid as Solid,
+    Stable as Stable,
+    Unknown as Unknown,
+    Vapor as Vapor,
+)
 from .wrapper import create_jax_wrapper
 
 try:
