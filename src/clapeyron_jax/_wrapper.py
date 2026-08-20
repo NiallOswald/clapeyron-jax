@@ -6,9 +6,8 @@ import equinox as eqx
 import jax
 import jax.numpy as jnp
 
-from clapeyron_jax.utils import parse_symbolic_shape
-
 from ._julia import julia as jl
+from ._utils import parse_symbolic_shape
 
 
 class create_jax_wrapper:

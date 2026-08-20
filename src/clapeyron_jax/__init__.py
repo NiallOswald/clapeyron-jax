@@ -13,7 +13,7 @@ from ._phases import (
     Unknown as Unknown,
     Vapor as Vapor,
 )
-from .wrapper import create_jax_wrapper
+from ._wrapper import create_jax_wrapper
 
 try:
     __version__ = importlib.metadata.version(__name__)
