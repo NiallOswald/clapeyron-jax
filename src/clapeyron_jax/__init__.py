@@ -25,20 +25,26 @@ except importlib.metadata.PackageNotFoundError:
 def mass_to_moles(model, ws: Float[Array, "n"]) -> Float[Array, "n"]:
     """Convert a mass fraction into a mole fraction."""
     mw = 1e-3 * jnp.array(model.params.Mw.values)
-    num = ws / mw
-    return num / jnp.sum(num)
+    moles = ws / mw
+    return moles / jnp.sum(moles)
 
 
 def moles_to_mass(model, zs: Float[Array, "n"]) -> Float[Array, "n"]:
     """Convert a mole fraction into a mass fraction."""
     mw = 1e-3 * jnp.array(model.params.Mw.values)
-    num = zs * mw
-    return num / jnp.sum(num)
+    mass = zs * mw
+    return mass / jnp.sum(mass)
 
 
 # Pressure-based bulk properties
+entropy = create_jax_wrapper("entropy", "(),(),(n)->()")
+internal_energy = create_jax_wrapper("internal_energy", "(),(),(n)->()")
+mass_enthalpy = create_jax_wrapper("mass_enthalpy", "(),(),(n)->()")
+mass_entropy = create_jax_wrapper("mass_entropy", "(),(),(n)->()")
 mass_density = create_jax_wrapper("mass_density", "(),(),(n)->()")
+mass_gibbs_energy = create_jax_wrapper("mass_gibbs_energy", "(),(),(n)->()")
 mass_internal_energy = create_jax_wrapper("mass_internal_energy", "(),(),(n)->()")
+speed_of_sound = create_jax_wrapper("speed_of_sound", "(),(),(n)->()")
 
 # Volume-based bulk properties
 pressure = create_jax_wrapper("pressure", "(),(),(n)->()")

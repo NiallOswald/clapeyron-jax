@@ -6,20 +6,31 @@ import equinox as eqx
 import jax
 import jax.numpy as jnp
 
-from ._julia import julia as jl
-from ._utils import parse_symbolic_shape
+from clapeyron_jax._julia import julia as jl
+from clapeyron_jax._modules import ClapeyronModules
+from .utils import parse_symbolic_shape
 
 
 class create_jax_wrapper:
     """Wraps a Clapeyron.jl function."""
 
-    def __init__(self, fn_name: str, signature: str):
+    def __init__(
+        self,
+        fn_name: str,
+        signature: str,
+        module: ClapeyronModules = ClapeyronModules.Main,
+    ):
         self.fn_name = fn_name
         self.signature = signature
+        self.module = module
+
+    @property
+    def _cl_module(self):
+        return getattr(jl.Clapeyron, self.module)
 
     @property
     def _jl_fn(self):
-        return getattr(jl.Clapeyron, self.fn_name)
+        return getattr(self._cl_module, self.fn_name)
 
     def _callback(self, args, kwargs):
         # TODO: Assumes that args[-1] == zs
