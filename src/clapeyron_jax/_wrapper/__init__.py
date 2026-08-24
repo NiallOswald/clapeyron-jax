@@ -8,6 +8,7 @@ import jax.numpy as jnp
 
 from clapeyron_jax._julia import julia as jl
 from clapeyron_jax._modules import ClapeyronModules
+
 from .shape_parser import parse_symbolic_shape
 
 

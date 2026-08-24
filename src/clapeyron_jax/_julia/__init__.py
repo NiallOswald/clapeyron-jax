@@ -2,7 +2,7 @@
 
 
 def _load_interpreter():
-    """Load and configure Julia interpreter."""
+    """Load and configure the Julia interpreter."""
     from juliacall import Main as jl
 
     jl.seval("""
@@ -45,12 +45,14 @@ def _load_interpreter():
 
         return unwrap_dual(dual_result)
     end
+
+    function eval_fn(func, args...; kwargs...)
+        kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
+        return func.(args...; kwargs...)
+    end
     """)
 
     return jl
-
-    def __getattr__(self, name: str):
-        return getattr(self._interpreter, name)
 
 
 julia = _load_interpreter()
