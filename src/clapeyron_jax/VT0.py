@@ -12,8 +12,5 @@ from clapeyron_jax._wrapper import create_jax_wrapper
 _module = ClapeyronModules.VT0
 
 
-# Pressure-based bulk properties
+mass_density = create_jax_wrapper("mass_density", "(),(),(n)->()")
 speed_of_sound = create_jax_wrapper("speed_of_sound", "(),(),(n)->()", _module)
-
-# Multiphase properties
-bubble_pressure = create_jax_wrapper("bubble_pressure", "(),(n)->(),(),(),(n)", _module)
