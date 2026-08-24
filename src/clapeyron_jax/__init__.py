@@ -5,6 +5,7 @@ import importlib.metadata
 import jax.numpy as jnp
 from jaxtyping import Array, Float
 
+from . import VT0 as VT0
 from ._phases import (
     Liquid as Liquid,
     Phase as Phase,
