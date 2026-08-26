@@ -1,16 +1,20 @@
 """Symbolic shape parser."""
 
 import re
+from typing import Optional
 
 import jax
 from jaxtyping import Array
 
 
-def parse_symbolic_shape(signature: str, args: tuple):
+def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = None):
     """
     Parses a signature like '(a, b), (n) -> (n, a)'
     and returns a tuple of ShapeDtypeStruct.
     """
+    if f_args is None:
+        f_args = args
+
     # Extract dimensions
     in_part, out_part = signature.split("->")
     in_specs = re.findall(r"\((.*?)\)", in_part)
@@ -19,7 +23,10 @@ def parse_symbolic_shape(signature: str, args: tuple):
     # Map symbols to integer values from input tracers
     batch_dims = ()
     symbol_map = {}
-    for spec, arg in zip(in_specs, args):
+    for spec, arg, failover in zip(in_specs, args, f_args):
+        if arg is None:
+            arg = failover
+
         if not spec:  # spec is scalar
             if isinstance(arg, Array):
                 batch_dims = arg.shape

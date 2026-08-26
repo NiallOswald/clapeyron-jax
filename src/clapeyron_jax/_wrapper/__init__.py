@@ -61,7 +61,9 @@ class JAXWrapper(eqx.Module):
         @wrapped.def_jvp
         def wrapped_jvp(primals, tangents, **kwargs):
             # Find output shape using the symbolic signature
-            result_shape_dtypes = parse_symbolic_shape(self.signature, tangents[1:])
+            result_shape_dtypes = parse_symbolic_shape(
+                self.signature, tangents[1:], primals[1:]
+            )
 
             primal_out = wrapped(*primals, **kwargs)
             tangent_out = eqx.filter_pure_callback(
