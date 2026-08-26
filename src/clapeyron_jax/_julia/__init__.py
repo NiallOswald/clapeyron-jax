@@ -41,14 +41,9 @@ def _load_interpreter():
         ]
         kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
 
-        dual_result = func.(args...; kwargs...)
+        dual_result = func(args...; kwargs...)
 
         return unwrap_dual(dual_result)
-    end
-
-    function eval_fn(func, args...; kwargs...)
-        kwargs = Dict(Symbol(k) => v for (k, v) in kwargs)
-        return func.(args...; kwargs...)
     end
     """)
 
