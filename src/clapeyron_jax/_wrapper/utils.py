@@ -1,10 +1,15 @@
-"""Symbolic shape parser."""
-
 import re
 from typing import Optional
 
 import jax
 from jaxtyping import Array
+
+
+def unwrap_scalar(obj):
+    """Extract Python scalar from 0-d array, keep higher-d arrays as-is."""
+    if isinstance(obj, Array) and obj.ndim == 0:
+        return obj.item()
+    return obj
 
 
 def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = None):
