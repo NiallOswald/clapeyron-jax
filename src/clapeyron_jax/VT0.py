@@ -6,11 +6,8 @@ calculations in volume-temperature basis that check and calculate if there are m
 phases, use the VT module instead.
 """
 
-from clapeyron_jax._modules import ClapeyronModules
+from clapeyron_jax._julia import clapeyron as cl
 from clapeyron_jax._wrapper import create_jax_wrapper
 
-_module = ClapeyronModules.VT0
-
-
-mass_density = create_jax_wrapper("mass_density", "(),(),(n)->()")
-speed_of_sound = create_jax_wrapper("speed_of_sound", "(),(),(n)->()", _module)
+mass_density = create_jax_wrapper(cl.VT0.mass_density, "(),(),(n)->()")
+speed_of_sound = create_jax_wrapper(cl.VT0.speed_of_sound, "(),(),(n)->()")

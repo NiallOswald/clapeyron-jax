@@ -56,3 +56,4 @@ def _load_interpreter():
 
 
 julia = _load_interpreter()
+clapeyron = julia.Clapeyron
