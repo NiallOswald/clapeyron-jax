@@ -6,6 +6,7 @@ import jax.numpy as jnp
 from jaxtyping import Array, Float
 
 from . import VT0 as VT0
+from ._julia import clapeyron as clapeyron, julia as julia
 from ._phases import (
     Liquid as Liquid,
     Phase as Phase,
@@ -20,6 +21,9 @@ try:
     __version__ = importlib.metadata.version(__name__)
 except importlib.metadata.PackageNotFoundError:
     __version__ = "0.0.0-dev"  # Fallback for editable installations
+
+cl = clapeyron
+jl = julia
 
 
 # Utilities
