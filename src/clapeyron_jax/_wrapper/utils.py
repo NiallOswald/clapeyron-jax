@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 import jax
 from jaxtyping import Array
@@ -12,14 +11,11 @@ def unwrap_scalar(obj):
     return obj
 
 
-def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = None):
+def parse_symbolic_shape(signature: str, args: tuple):
     """
     Parses a signature like '(a, b), (n) -> (n, a)'
     and returns a tuple of ShapeDtypeStruct.
     """
-    if f_args is None:
-        f_args = args
-
     # Extract dimensions
     in_part, out_part = signature.split("->")
     in_specs = re.findall(r"\((.*?)\)", in_part)
@@ -27,11 +23,9 @@ def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = 
 
     # Map symbols to integer values from input tracers
     symbol_map = {}
-    for spec, arg, failover in zip(in_specs, args, f_args):
-        if arg is None:
-            arg = failover
-
-        if not spec:  # spec is scalar
+    for spec, arg in zip(in_specs, args):
+        if not spec:
+            # spec is a scalar
             continue
 
         keys = [d.strip() for d in spec.split(",")]
