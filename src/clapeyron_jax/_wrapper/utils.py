@@ -26,20 +26,16 @@ def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = 
     out_specs = re.findall(r"\((.*?)\)", out_part)
 
     # Map symbols to integer values from input tracers
-    batch_dims = ()
     symbol_map = {}
     for spec, arg, failover in zip(in_specs, args, f_args):
         if arg is None:
             arg = failover
 
         if not spec:  # spec is scalar
-            if isinstance(arg, Array):
-                batch_dims = arg.shape
             continue
 
         keys = [d.strip() for d in spec.split(",")]
 
-        batch_dims = arg.shape[: -len(keys)]
         val_dims = arg.shape[-len(keys) :]
 
         for key, val in zip(keys, val_dims):
@@ -63,7 +59,7 @@ def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = 
                 )
             )
 
-        result_shape_dtypes.append(jax.ShapeDtypeStruct(batch_dims + out_dims, float))
+        result_shape_dtypes.append(jax.ShapeDtypeStruct(out_dims, float))
 
     if len(result_shape_dtypes) > 1:
         return tuple(result_shape_dtypes)
