@@ -9,5 +9,5 @@ phases, use the VT module instead.
 from clapeyron_jax._julia import clapeyron as cl
 from clapeyron_jax._wrapper import create_jax_wrapper
 
-mass_density = create_jax_wrapper(cl.VT0.mass_density, "(),(),(n)->()")
-speed_of_sound = create_jax_wrapper(cl.VT0.speed_of_sound, "(),(),(n)->()")
+mass_density = create_jax_wrapper(cl.VT0.mass_density, "(n),(),(),(n)->()")
+speed_of_sound = create_jax_wrapper(cl.VT0.speed_of_sound, "(n),(),(),(n)->()")

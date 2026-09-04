@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from collections.abc import Sized
 
 import jax
 from jaxtyping import Array
@@ -12,58 +12,71 @@ def unwrap_scalar(obj):
     return obj
 
 
-def parse_symbolic_shape(signature: str, args: tuple, f_args: Optional[tuple] = None):
+def parse_symbolic_shape(signature: str, args: tuple):
     """
     Parses a signature like '(a, b), (n) -> (n, a)'
     and returns a tuple of ShapeDtypeStruct.
     """
-    if f_args is None:
-        f_args = args
-
     # Extract dimensions
     in_part, out_part = signature.split("->")
     in_specs = re.findall(r"\((.*?)\)", in_part)
     out_specs = re.findall(r"\((.*?)\)", out_part)
 
     # Map symbols to integer values from input tracers
-    batch_dims = ()
     symbol_map = {}
-    for spec, arg, failover in zip(in_specs, args, f_args):
-        if arg is None:
-            arg = failover
+    for arg_i, (spec, arg) in enumerate(zip(in_specs, args)):
+        if spec:
+            keys = [d.strip() for d in spec.split(",")]
+        else:
+            # spec is a scalar
+            keys = []
 
-        if not spec:  # spec is scalar
-            if isinstance(arg, Array):
-                batch_dims = arg.shape
-            continue
+        match arg:
+            case Array():
+                val_dims = arg.shape
+            case Sized():
+                val_dims = (len(arg),)
+            case int() | float():
+                # arg is a scalar
+                val_dims = ()
+            case _:
+                raise TypeError(
+                    f"unexpected argument in position {arg_i}. Expected Array, Sized, "
+                    f"or scalar but found {type(arg)}"
+                )
 
-        keys = [d.strip() for d in spec.split(",")]
-
-        batch_dims = arg.shape[: -len(keys)]
-        val_dims = arg.shape[-len(keys) :]
-
-        for key, val in zip(keys, val_dims):
-            if key.isdigit() or key in symbol_map:
+        for axis_i, (key, val) in enumerate(zip(keys, val_dims, strict=True)):
+            if key.isdigit():
+                spec_val = int(key)
+            elif key in symbol_map:
+                spec_val = symbol_map[key]
+            else:
+                symbol_map[key] = val
                 continue
-            symbol_map[key] = val
+
+            if val != spec_val:
+                raise ValueError(
+                    f"shape mismatch: argument in position {arg_i} has length {val} in "
+                    f"axis {axis_i} but signature specifies length {spec_val}"
+                )
 
     # Build output ShapeDtypeStructs using the symbol_map
     result_shape_dtypes = []
     for spec in out_specs:
-        if not spec:
-            out_dims = ()
-
-        else:
+        if spec:
             keys = [d.strip() for d in spec.split(",")]
-            out_dims = tuple(
-                map(
-                    # Use mapped symbol or literal integer
-                    lambda key: symbol_map[key] if key in symbol_map else int(key),
-                    keys,
-                )
-            )
+        else:
+            # spec is a scalar
+            keys = []
 
-        result_shape_dtypes.append(jax.ShapeDtypeStruct(batch_dims + out_dims, float))
+        out_dims = tuple(
+            map(
+                lambda key: symbol_map[key] if key in symbol_map else int(key),
+                keys,
+            )
+        )
+
+        result_shape_dtypes.append(jax.ShapeDtypeStruct(out_dims, float))
 
     if len(result_shape_dtypes) > 1:
         return tuple(result_shape_dtypes)

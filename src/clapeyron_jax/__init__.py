@@ -42,18 +42,19 @@ def moles_to_mass(model, zs: Float[Array, "n"]) -> Float[Array, "n"]:
 
 
 # Pressure-based bulk properties
-entropy = create_jax_wrapper(cl.entropy, "(),(),(n)->()")
-internal_energy = create_jax_wrapper(cl.internal_energy, "(),(),(n)->()")
-mass_enthalpy = create_jax_wrapper(cl.mass_enthalpy, "(),(),(n)->()")
-mass_entropy = create_jax_wrapper(cl.mass_entropy, "(),(),(n)->()")
-mass_density = create_jax_wrapper(cl.mass_density, "(),(),(n)->()")
-mass_gibbs_energy = create_jax_wrapper(cl.mass_gibbs_energy, "(),(),(n)->()")
-mass_internal_energy = create_jax_wrapper(cl.mass_internal_energy, "(),(),(n)->()")
-speed_of_sound = create_jax_wrapper(cl.speed_of_sound, "(),(),(n)->()")
+entropy = create_jax_wrapper(cl.entropy, "(n),(),(),(n)->()")
+internal_energy = create_jax_wrapper(cl.internal_energy, "(n),(),(),(n)->()")
+mass_enthalpy = create_jax_wrapper(cl.mass_enthalpy, "(n),(),(),(n)->()")
+mass_entropy = create_jax_wrapper(cl.mass_entropy, "(n),(),(),(n)->()")
+mass_density = create_jax_wrapper(cl.mass_density, "(n),(),(),(n)->()")
+mass_gibbs_energy = create_jax_wrapper(cl.mass_gibbs_energy, "(n),(),(),(n)->()")
+mass_internal_energy = create_jax_wrapper(cl.mass_internal_energy, "(n),(),(),(n)->()")
+speed_of_sound = create_jax_wrapper(cl.speed_of_sound, "(n),(),(),(n)->()")
 
 # Volume-based bulk properties
-pressure = create_jax_wrapper(cl.pressure, "(),(),(n)->()")
+pressure = create_jax_wrapper(cl.pressure, "(n),(),(),(n)->()")
 
 # Multiphase properties
-bubble_pressure = create_jax_wrapper(cl.bubble_pressure, "(),(n)->(),(),(),(n)")
-saturation_pressure = create_jax_wrapper(cl.saturation_pressure, "(),()->(),(),()")
+bubble_pressure = create_jax_wrapper(cl.bubble_pressure, "(n),(),(n)->(),(),(),(n)")
+saturation_pressure = create_jax_wrapper(cl.saturation_pressure, "(n),(),()->(),(),()")
+UCST_pressure = create_jax_wrapper(cl.UCST_pressure, "(n),()->(),(),(n)")
