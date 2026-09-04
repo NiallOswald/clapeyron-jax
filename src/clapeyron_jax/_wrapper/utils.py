@@ -30,12 +30,18 @@ def parse_symbolic_shape(signature: str, args: tuple):
 
         keys = [d.strip() for d in spec.split(",")]
 
-        val_dims = arg.shape[-len(keys) :]
+        if isinstance(arg, Array):
+            val_dims = arg.shape
+        else:
+            val_dims = (len(arg),)
 
         for key, val in zip(keys, val_dims):
-            if key.isdigit() or key in symbol_map:
-                continue
-            symbol_map[key] = val
+            if key.isdigit():
+                assert key == val
+            elif key in symbol_map:
+                assert symbol_map[key] == val
+            else:
+                symbol_map[key] = val
 
     # Build output ShapeDtypeStructs using the symbol_map
     result_shape_dtypes = []
